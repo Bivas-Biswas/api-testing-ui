@@ -1,10 +1,7 @@
-import dynamic from 'next/dynamic'
 import React from 'react'
 import { tw } from 'twind/style'
 
-const Editor = dynamic(() => import('@monaco-editor/react'), {
-  ssr: false
-})
+import Editor from '@monaco-editor/react'
 
 const InputSection = ({
   value,
@@ -22,7 +19,7 @@ const InputSection = ({
         height="100%"
         language={'json'}
         theme={'vs-dark'}
-        loading={'Editor Loading...'}
+        loading={'Loading...'}
         value={value}
         onChange={(value) => {
           onChange(value || '')
@@ -33,7 +30,7 @@ const InputSection = ({
           cursorSmoothCaretAnimation: true,
           cursorStyle: 'line',
           quickSuggestions: false,
-          wordWrap: 'on',
+          wordWrap: 'wordWrapColumn',
           fontSize: 13,
           minimap: { enabled: false }
         }}

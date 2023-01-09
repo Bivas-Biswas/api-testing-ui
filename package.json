@@ -7,6 +7,7 @@
     "postinstall": "husky install",
     "start": "next start -p ${PORT:=3000}",
     "build": "next build",
+    "export": "next build && next export",
     "dev": "next dev",
     "prettier": "prettier --bracket-same-line true --check .",
     "prettier:fix": "prettier --bracket-same-line true --write .",

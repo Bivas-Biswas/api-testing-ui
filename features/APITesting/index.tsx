@@ -14,6 +14,17 @@ import {
   SelectTabType
 } from './types'
 
+const errorResponseInitialData: { isError: boolean; message: any } = {
+  isError: false,
+  message: ''
+}
+
+const responseInitialData = {
+  data: {},
+  status: '',
+  statusText: ''
+}
+
 const APITesting = () => {
   const [apiCallConfig, setApiCallConfig] = useState<ApiCallConfigType>({
     url: '',
@@ -34,13 +45,10 @@ const APITesting = () => {
   const [response, setResponse] = useState<{
     data: any
     status: any
-    error: any
-  }>({
-    data: {},
-    status: '',
-    error: ''
-  })
+    statusText: string
+  }>(responseInitialData)
 
+  const [errorResponse, setErrorResponse] = useState(errorResponseInitialData)
   useEffect(() => {
     const _getInputSectionValue = (selectTab: SelectTabType) => {
       switch (selectTab) {
@@ -63,7 +71,7 @@ const APITesting = () => {
   const handleSend = async () => {
     const config = apiCallConfig
     const headers = JSON.parse(config.headers)
-    const data = JSON.parse(config.data)
+    const data = config.data ? JSON.parse(config.data) : ''
     const method = config.method as Method
 
     let newConfig: AxiosRequestConfig = {
@@ -85,10 +93,17 @@ const APITesting = () => {
         withCredentials: false,
         proxy: false
       })
-      const { data, status } = response
-      setResponse((prev) => ({ ...prev, data, status }))
-    } catch (e) {
-      console.log(e)
+      const { data, status, statusText } = response
+      setResponse((prev) => ({ ...prev, data, status, statusText }))
+      setErrorResponse(errorResponseInitialData)
+      console.log({ response })
+    } catch (error) {
+      console.log({ error })
+      setErrorResponse(() => ({
+        message: error,
+        isError: true
+      }))
+      setResponse(responseInitialData)
     }
   }
 
@@ -108,6 +123,14 @@ const APITesting = () => {
     return apiCallConfig.url
   }
 
+  const _getInputResponse = () => {
+    if (!errorResponse.isError) {
+      return JSON.stringify(response.data, null, '\t')
+    } else {
+      return JSON.stringify(errorResponse.message, null, '\t')
+    }
+  }
+
   const handleEditorInput = (value: string) => {
     switch (selectTab) {
       case 'body':
@@ -122,7 +145,7 @@ const APITesting = () => {
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto py-4 h-[100vh]">
+    <div className="w-full max-w-lg mx-auto py-4 h-[100vh] overflow-hidden">
       <APITestingContext.Provider value={_getValue()}>
         <div className="w-full p-3 flex flex-col gap-2 h-full bg-[#202327]">
           {/* send section */}
@@ -204,15 +227,36 @@ const APITesting = () => {
 
           {/* response */}
           <div className="h-[60%] flex flex-col gap-2">
-            <div className="flex flex-row">
+            <div className="flex flex-row justify-between">
               <p>Response</p>
+              {!errorResponse.isError && response.status && (
+                <div className="flex flex-row text-sm items-center gap-2">
+                  <p className="text-gray-400">Status:</p>
+                  <div
+                    className={tw(
+                      'text-green-500',
+                      response.status === '400' && 'text-red-500'
+                    )}>
+                    {response.status}
+                  </div>
+                  <div className={tw('text-green-500')}>
+                    {response.statusText}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="w-full h-full">
+            <div className="flex flex-col w-full h-full gap-2">
               <InputSection
-                className={'max-h-full'}
-                value={JSON.stringify(response.data, null, '\t')}
+                value={_getInputResponse()}
                 onChange={(_value) => {}}
               />
+
+              {errorResponse.isError && (
+                <div className="text-sm p-1.5 text-center rounded-xl bg-red-900">
+                  Couldn&apos;t resolve host. Make sure the domain is publicly
+                  accessible or select a different agent.
+                </div>
+              )}
             </div>
           </div>
         </div>
